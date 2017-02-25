@@ -1,24 +1,25 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Control.Monad        (void)
+import           Control.Monad          (void)
 import           Data.Monoid
-import qualified Graphics.Vty         as V
-import           Lens.Micro           ((&), (.~), (^.))
-import qualified Data.Text as T
+import qualified Data.Text              as T
+import qualified Graphics.Vty           as V
+import           Lens.Micro             ((&), (.~), (^.))
 
 import           Brick.AttrMap
 import           Brick.Main
-import           Brick.Markup         (markup, (@?))
+import           Brick.Markup           (markup, (@?))
 import           Brick.Types
-import           Brick.Util           (fg, on)
-import           Brick.Widgets.Border as B
-import           Brick.Widgets.Center as C
+import           Brick.Util             (fg, on)
+import           Brick.Widgets.Border   as B
+import           Brick.Widgets.Center   as C
 import           Brick.Widgets.Core
-import           Data.Text.Markup     ((@@))
+import           Data.Text.Markup       ((@@))
 
+import           Brick.Widgets.DefnList
 import           Presets
-import           Types.State
 import           Types.Preset
+import           Types.State
 
 drawUI :: St -> [Widget ()]
 drawUI st = [ui]
@@ -33,12 +34,12 @@ drawUI st = [ui]
               , padAll 1 $ C.center $ actionsBox
               ]
     status = str "Ready to scan first page"
-    settingsBox = vBox [ str $ "run OCRmyPDF: "
-                         <> if st^.stOCR then "yes" else "no"
-                       , str $ "colour data: " ++ (show $ st^.stColour)
-                       , str $ "page size: " ++ (show $ st^.stPaper)
-                       , str $ "DPI: " ++ (show $ st^.stDPI)
-                       ]
+    settingsBox = defnList
+        [ ("run OCRmyPDF", if st^.stOCR then "yes" else "no")
+        , ("colour data",  show $ st^.stColour)
+        , ("page size",    show $ st^.stPaper)
+        , ("DPI",          show $ st^.stDPI)
+        ]
     presetsBox = vBox $
         (\(Preset k desc _) ->
             markup $
@@ -56,13 +57,13 @@ handleHotKey st 'p' = continue $
     st & stPaper .~ (cyclePaper $ st^.stPaper)
 handleHotKey st c = case lookupPreset c of
   Just (Preset _ _ f) -> continue $ f st
-  _ -> continue st
+  _                   -> continue st
 
 appEvent :: St -> BrickEvent () e -> EventM () (Next St)
 appEvent st (VtyEvent e) =
     case e of
       V.EvKey (V.KChar c) [] -> handleHotKey st c
-      _ -> continue st
+      _                      -> continue st
 appEvent st _ = continue st
 
 initialState :: St
