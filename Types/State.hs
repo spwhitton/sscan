@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Types where
+module Types.State where
 
 import           Lens.Micro.TH        (makeLenses)
 
@@ -27,6 +27,7 @@ cyclePaper Auto   = A4
 -- | DPI to scan
 type DPI = Int
 
+-- | Application state
 data St =
     St { _stScanningSession :: Maybe FilePath -- ^ if a session is in
                                               -- progress, accmulate

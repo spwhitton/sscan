@@ -4,6 +4,7 @@ import           Control.Monad        (void)
 import           Data.Monoid
 import qualified Graphics.Vty         as V
 import           Lens.Micro           ((&), (.~), (^.))
+import qualified Data.Text as T
 
 import           Brick.AttrMap
 import           Brick.Main
@@ -15,7 +16,9 @@ import           Brick.Widgets.Center as C
 import           Brick.Widgets.Core
 import           Data.Text.Markup     ((@@))
 
-import           Types
+import           Presets
+import           Types.State
+import           Types.Preset
 
 drawUI :: St -> [Widget ()]
 drawUI st = [ui]
@@ -23,43 +26,42 @@ drawUI st = [ui]
     ui = vBox [ hBorderWithLabel (str "[ Status ]")
               , C.center $ status
               , hBorderWithLabel (str "[ Current settings ]")
-              , padAll 1 $ C.center $ settings
+              , padAll 1 $ C.center $ settingsBox
               , hBorderWithLabel (str "[ Presets ]")
-              , padAll 1 $ C.center $ presets
+              , padAll 1 $ C.center $ presetsBox
               , hBorderWithLabel (str "[ Actions ]")
-              , padAll 1 $ C.center $ actions
+              , padAll 1 $ C.center $ actionsBox
               ]
     status = str "Ready to scan first page"
-    settings = vBox [ str $ "run OCRmyPDF: " ++ if st^.stOCR then "yes" else "no"
-                    , str $ "colour data: " ++ (show $ st^.stColour)
-                    , str $ "page size: " ++ (show $ st^.stPaper)
-                    , str $ "DPI: " ++ (show $ st^.stDPI)
-                    ]
-    presets = vBox [ markup $ ("h:" @@ (V.withStyle V.currentAttr V.bold))
-                     <> (" handwritten notes" @@ fg V.white)
-                   ]
-    actions = str "actions"
+    settingsBox = vBox [ str $ "run OCRmyPDF: "
+                         <> if st^.stOCR then "yes" else "no"
+                       , str $ "colour data: " ++ (show $ st^.stColour)
+                       , str $ "page size: " ++ (show $ st^.stPaper)
+                       , str $ "DPI: " ++ (show $ st^.stDPI)
+                       ]
+    presetsBox = vBox $
+        (\(Preset k desc _) ->
+            markup $
+            (((T.pack [k]) <> ": ") @@ (V.withStyle V.currentAttr V.bold))
+            <> (desc @@ fg V.white))
+        <$> presets
+    actionsBox = str "actions"
+
+handleHotKey :: St -> Char -> EventM () (Next St)
+handleHotKey st 'q' = halt st
+handleHotKey st 'o' = continue $ st & stOCR .~ (not $ st^.stOCR)
+handleHotKey st 'c' = continue $
+    st & stColour .~ (cycleColour $ st^.stColour)
+handleHotKey st 'p' = continue $
+    st & stPaper .~ (cyclePaper $ st^.stPaper)
+handleHotKey st c = case lookupPreset c of
+  Just (Preset _ _ f) -> continue $ f st
+  _ -> continue st
 
 appEvent :: St -> BrickEvent () e -> EventM () (Next St)
 appEvent st (VtyEvent e) =
     case e of
-      -- settings toggles
-      V.EvKey (V.KChar 'o') [] -> continue $ st & stOCR .~ (not $ st^.stOCR)
-      V.EvKey (V.KChar 'c') [] -> continue $
-          st & stColour .~ (cycleColour $ st^.stColour)
-      V.EvKey (V.KChar 'p') [] -> continue $
-          st & stPaper .~ (cyclePaper $ st^.stPaper)
-
-      -- presets: set several settings toggles at once
-      V.EvKey (V.KChar 'h') [] -> continue $ st
-          { _stOCR = False
-          , _stColour = Greyscale
-          , _stDPI = 75
-          }
-
-      -- actions
-      V.EvKey (V.KChar 'q') [] -> halt st
-
+      V.EvKey (V.KChar c) [] -> handleHotKey st c
       _ -> continue st
 appEvent st _ = continue st
 
