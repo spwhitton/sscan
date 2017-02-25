@@ -66,16 +66,6 @@ appEvent st (VtyEvent e) =
       _                      -> continue st
 appEvent st _ = continue st
 
-initialState :: St
-initialState =
-    St { _stScanningSession = Nothing
-       , _stOCR = True
-       , _stColour = Greyscale
-       , _stPaper = A4
-       , _stDPI = 300
-       , _stOutdir = ""
-       }
-
 theApp :: App St e ()
 theApp =
     App { appDraw = drawUI
@@ -86,4 +76,15 @@ theApp =
         }
 
 main = do
+    papersize <- init <$> readFile "/etc/papersize"
+    let paper = if papersize == "letter" then Letter else A4
+        initialState = St
+            { _stScanningSession = Nothing
+            , _stOCR             = True
+            , _stColour          = Greyscale
+            , _stPaper           = paper
+            , _stDefaultPaper    = paper
+            , _stDPI             = 300
+            , _stOutdir          = ""
+            }
     void $ defaultMain theApp initialState

@@ -34,7 +34,8 @@ data St =
                                               -- scans in this dir
        , _stOCR             :: Bool -- ^ whether to use OCRmyPDF
        , _stColour          :: Colour
-       , _stPaper           :: Paper
+       , _stPaper           :: Paper -- ^ currently selected paper size
+       , _stDefaultPaper    :: Paper -- ^ locale's default paper size
        , _stDPI             :: DPI
        , _stOutdir          :: FilePath -- ^ where to save final PDFs
        }
