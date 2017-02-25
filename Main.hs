@@ -5,6 +5,8 @@ import           Data.Monoid
 import qualified Data.Text              as T
 import qualified Graphics.Vty           as V
 import           Lens.Micro             ((&), (.~), (^.))
+import           System.Directory       (getHomeDirectory)
+import           System.FilePath        ((</>))
 
 import           Brick.AttrMap
 import           Brick.Main
@@ -39,6 +41,7 @@ drawUI st = [ui]
         , ("colour data",  show $ st^.stColour)
         , ("page size",    show $ st^.stPaper)
         , ("DPI",          show $ st^.stDPI)
+        , ("output dir",   st^.stOutdir)
         ]
     presetsBox = vBox $
         (\(Preset k desc _) ->
@@ -76,6 +79,7 @@ theApp =
         }
 
 main = do
+    home <- getHomeDirectory
     papersize <- init <$> readFile "/etc/papersize"
     let paper = if papersize == "letter" then Letter else A4
         initialState = St
@@ -85,6 +89,7 @@ main = do
             , _stPaper           = paper
             , _stDefaultPaper    = paper
             , _stDPI             = 300
-            , _stOutdir          = ""
+            , _stOutFormat    = PDF
+            , _stOutdir          = home </> "tmp"
             }
     void $ defaultMain theApp initialState

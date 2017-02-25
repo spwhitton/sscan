@@ -27,6 +27,9 @@ cyclePaper Auto   = A4
 -- | DPI to scan
 type DPI = Int
 
+-- | Output format
+data OutputFormat = PDF | PNG
+
 -- | Application state
 data St =
     St { _stScanningSession :: Maybe FilePath -- ^ if a session is in
@@ -37,7 +40,10 @@ data St =
        , _stPaper           :: Paper -- ^ currently selected paper size
        , _stDefaultPaper    :: Paper -- ^ locale's default paper size
        , _stDPI             :: DPI
+       , _stOutFormat       :: OutputFormat
        , _stOutdir          :: FilePath -- ^ where to save final PDFs
        }
+
+-- other device-specific scanimage options we could support: --swdespeck; --color-filter; --depth
 
 makeLenses ''St

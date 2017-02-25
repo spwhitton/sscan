@@ -19,6 +19,8 @@ executable sscan
   -- other-extensions:    
   build-depends:       base >=4.9 && <4.10
                      , brick >=0.17 && <0.18
+                     , directory >= 1.2.6.2
+                     , filepath >= 1.4.1.0
                      , microlens >= 0.4.7.0
                      , microlens-th >= 0.4.1.1
                      , text >= 1.2.2.1

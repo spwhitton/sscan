@@ -20,7 +20,7 @@ handwrittenNotes = \st -> st
     { _stOCR     = False
     , _stColour  = Greyscale
     , _stDPI     = 75
-    , _stPaper  = st^.stDefaultPaper
+    , _stPaper   = st^.stDefaultPaper
     }
 
 typewrittenDocs = \st -> st
