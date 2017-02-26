@@ -78,14 +78,23 @@ handleSPC st = undefined
 handleHotKey :: St -> Char -> EventM () (Next St)
 handleHotKey st 'q' = handleQ st
 handleHotKey st ' ' = handleSPC st
-handleHotKey st 'o' = continue $ st & stOCR .~ (not $ st^.stOCR)
+handleHotKey st 'o' = continue $
+    if isJust $ st^.stScanningSession
+    then st
+    else st & stOCR .~ (not $ st^.stOCR)
 handleHotKey st 'c' = continue $
-    st & stColour .~ (cycleColour $ st^.stColour)
+    if isJust $ st^.stScanningSession
+    then st
+    else st & stColour .~ (cycleColour $ st^.stColour)
 handleHotKey st 'p' = continue $
-    st & stPaper .~ (cyclePaper $ st^.stPaper)
-handleHotKey st c = case lookupPreset c of
-  Just (Preset _ _ f) -> continue $ f st
-  _                   -> continue st
+    if isJust $ st^.stScanningSession
+    then st
+    else st & stPaper .~ (cyclePaper $ st^.stPaper)
+handleHotKey st c = continue $ if isJust $ st^.stScanningSession
+    then st
+    else case lookupPreset c of
+           Just (Preset _ _ f) -> f st
+           _                   -> st
 
 appEvent :: St -> BrickEvent () e -> EventM () (Next St)
 appEvent st (VtyEvent e) =
