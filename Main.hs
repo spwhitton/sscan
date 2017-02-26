@@ -2,12 +2,15 @@
 
 import           Control.Concurrent     (forkFinally)
 import           Control.Monad          (void)
+import           Control.Monad.IO.Class (liftIO)
 import           Data.Monoid
 import qualified Data.Text              as T
 import qualified Graphics.Vty           as V
 import           Lens.Micro             ((&), (.~), (^.))
-import           System.Directory       (getHomeDirectory)
+import           System.Directory       (getHomeDirectory,
+                                         getTemporaryDirectory)
 import           System.FilePath        ((</>))
+import           System.IO.Temp         (createTempDirectory)
 
 import           Brick.AttrMap
 import           Brick.Main
@@ -90,7 +93,12 @@ handleESC st = ifScanSess st
     (continue st)
 
 beginScanSess :: St -> EventM () St
-beginScanSess st = undefined
+beginScanSess st = do
+    temp <- liftIO $ getTemporaryDirectory
+        >>= \tmpdir -> createTempDirectory tmpdir "sscan"
+    return $ st
+        & stScanningSession .~ (Just temp)
+        & stPageCount .~ (Just 0)
 
 abortScanSess :: St -> EventM () St
 abortScanSess st = undefined
