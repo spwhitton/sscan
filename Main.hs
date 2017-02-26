@@ -82,23 +82,20 @@ handleESC st = undefined
 handleHotKey :: St -> Char -> EventM () (Next St)
 handleHotKey st 'q' = handleQ st
 handleHotKey st ' ' = handleSPC st
-handleHotKey st 'o' = continue $
-    if isJust $ st^.stScanningSession
-    then st
-    else st & stOCR .~ (not $ st^.stOCR)
-handleHotKey st 'c' = continue $
-    if isJust $ st^.stScanningSession
-    then st
-    else st & stColour .~ (cycleColour $ st^.stColour)
-handleHotKey st 'p' = continue $
-    if isJust $ st^.stScanningSession
-    then st
-    else st & stPaper .~ (cyclePaper $ st^.stPaper)
-handleHotKey st c = continue $ if isJust $ st^.stScanningSession
-    then st
-    else case lookupPreset c of
-           Just (Preset _ _ f) -> f st
-           _                   -> st
+handleHotKey st 'o' = updateStateOutsideSession st
+    (\s -> s & stOCR .~ (not $ st^.stOCR))
+handleHotKey st 'c' = updateStateOutsideSession st
+    (\s -> s & stColour .~ (cycleColour $ st^.stColour))
+handleHotKey st 'p' = updateStateOutsideSession st
+    (\s -> s & stPaper .~ (cyclePaper $ st^.stPaper))
+handleHotKey st c = updateStateOutsideSession st $
+    case lookupPreset c of
+      Just (Preset _ _ f) -> f
+      _                   -> id
+
+updateStateOutsideSession :: St -> (St -> St) -> EventM () (Next St)
+updateStateOutsideSession st f = continue $
+    if isJust $ st^.stScanningSession then st else f st
 
 appEvent :: St -> BrickEvent () e -> EventM () (Next St)
 appEvent st (VtyEvent e) =
