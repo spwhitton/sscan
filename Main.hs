@@ -75,45 +75,45 @@ drawUI st = [ui]
 
 handleQ :: St -> EventM () (Next St)
 handleQ st = ifScanSess st
-    (finishScanSess st >>= continue)
+    ((liftIO . finishScanSess) st >>= continue)
     (halt st)
 
 handleRET :: St -> EventM () (Next St)
-handleRET st = ifScanSess st
-    (scanNextPage st >>= finishScanSess >>= continue)
-    (beginScanSess st >>= scanNextPage >>= finishScanSess >>= continue)
+handleRET st = suspendAndResume $ ifScanSess st
+    (scanNextPage st >>= finishScanSess)
+    (beginScanSess st >>= scanNextPage >>= finishScanSess)
 
 handleSPC :: St -> EventM () (Next St)
-handleSPC st = ifScanSess st
-    (scanNextPage st >>= continue)
-    (beginScanSess st >>= scanNextPage >>= continue)
+handleSPC st = suspendAndResume $ ifScanSess st
+    (scanNextPage st)
+    (beginScanSess st >>= scanNextPage)
 
 handleESC :: St -> EventM () (Next St)
 handleESC st = ifScanSess st
-    (abortScanSess st >>= continue)
+    ((liftIO . abortScanSess) st >>= continue)
     (continue st)
 
-beginScanSess :: St -> EventM () St
+beginScanSess :: St -> IO St
 beginScanSess st = do
-    temp <- liftIO $ getTemporaryDirectory
+    temp <- getTemporaryDirectory
         >>= \tmpdir -> createTempDirectory tmpdir "sscan"
     return $ st
         & stScanningSession .~ (Just temp)
         & stPageCount .~ (Just 0)
 
-abortScanSess :: St -> EventM () St
+abortScanSess :: St -> IO St
 abortScanSess st = do
     maybe (return ())
-        (liftIO . removeDirectoryRecursive)
+        removeDirectoryRecursive
         (st^.stScanningSession)
     return $ st
         & stScanningSession .~ Nothing
         & stPageCount .~ Nothing
 
-finishScanSess :: St -> EventM () St
+finishScanSess :: St -> IO St
 finishScanSess st = undefined
 
-scanNextPage :: St -> EventM () St
+scanNextPage :: St -> IO St
 scanNextPage st = undefined
 
 handleHotKey :: St -> Char -> EventM () (Next St)
