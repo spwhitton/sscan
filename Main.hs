@@ -93,6 +93,10 @@ handleESC st = ifScanSess st
     ((liftIO . abortScanSess) st >>= continue)
     (continue st)
 
+-- TODO these IO actions should not get a whole St.  They should get
+-- the bits of St that they need.  The pure function that invokes
+-- these actions should update St appropriately
+
 beginScanSess :: St -> IO St
 beginScanSess st = do
     temp <- getTemporaryDirectory
@@ -126,6 +130,9 @@ finishScanSess st = do
 finishScanSess' :: St -> IO St
 finishScanSess' st = undefined
 
+-- run scanimage with appropriate arguments.  If scanimage exists
+-- non-zero, inform the user that we will abort the scan session,
+-- pause for them to read the output, and then abort the scan session
 scanNextPage :: St -> IO St
 scanNextPage st = undefined
 
