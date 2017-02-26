@@ -19,6 +19,7 @@ import           Brick.Widgets.Core
 import           Data.Text.Markup       ((@@))
 
 import           Brick.Widgets.DefnList
+import           Data.Maybe             (isJust)
 import           Presets
 import           Types.Preset
 import           Types.State
@@ -47,7 +48,23 @@ drawUI st = [ui]
     presetsBox = defnList AlignLeft
         (Just $ V.withStyle V.currentAttr V.bold)
         (map (\(Preset k desc _) -> ([k], desc)) presets)
-    actionsBox = str "actions"
+    actionsBox = defnList AlignLeft
+        (Just $ V.withStyle V.currentAttr V.bold) $
+        (if st^.stOutFormat == PDF
+         then (if isJust $ st^.stScanningSession
+               then [ ("SPC", "scan next page")
+                    , ("RET", "scan final page")
+                    , ("q", "declare last page was final page")
+                    ]
+               else [ ("SPC", "scan first page of multi-page document")
+                    , ("RET", "scan single page document")
+                    , ("q", "quit sscan")
+                    ]
+              )
+         else [ ("SPC", "scan page")
+              , ("q", "quit sscan")
+              ]
+        )
 
 handleHotKey :: St -> Char -> EventM () (Next St)
 handleHotKey st 'q' = halt st
