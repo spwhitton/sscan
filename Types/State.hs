@@ -2,7 +2,9 @@
 
 module Types.State where
 
-import           Lens.Micro.TH        (makeLenses)
+import           Data.Maybe
+import           Lens.Micro    ((^.))
+import           Lens.Micro.TH (makeLenses)
 
 -- | Whether to do colour, grey or b&w scans
 data Colour = Lineart | Greyscale | Colour
@@ -48,3 +50,6 @@ data St =
 -- other device-specific scanimage options we could support: --swdespeck; --color-filter; --depth
 
 makeLenses ''St
+
+ifScanSess :: St -> a -> a -> a
+ifScanSess st a b = if isJust $ st^.stScanningSession then a else b

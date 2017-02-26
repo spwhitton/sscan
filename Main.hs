@@ -19,7 +19,6 @@ import           Brick.Widgets.Core
 import           Data.Text.Markup       ((@@))
 
 import           Brick.Widgets.DefnList
-import           Data.Maybe             (isJust)
 import           Presets
 import           Types.Preset
 import           Types.State
@@ -51,16 +50,16 @@ drawUI st = [ui]
     actionsBox = defnList AlignLeft
         (Just $ V.withStyle V.currentAttr V.bold) $
         (if st^.stOutFormat == PDF
-         then (if isJust $ st^.stScanningSession
-               then [ ("SPC", "scan next page")
-                    , ("RET", "scan final page")
-                    , ("q", "declare last scanned page was the final page")
-                    , ("ESC", "abort/restart scanning this document")
-                    ]
-               else [ ("SPC", "scan first page of multi-page document")
-                    , ("RET", "scan single page document")
-                    , ("q", "quit sscan")
-                    ]
+         then (ifScanSess st
+                [ ("SPC", "scan next page")
+                , ("RET", "scan final page")
+                , ("q", "declare last scanned page was the final page")
+                , ("ESC", "abort/restart scanning this document")
+                ]
+                [ ("SPC", "scan first page of multi-page document")
+                , ("RET", "scan single page document")
+                , ("q", "quit sscan")
+                ]
               )
          else [ ("SPC", "scan page")
               , ("q", "quit sscan")
@@ -94,8 +93,7 @@ handleHotKey st c = updateStateOutsideSession st $
       _                   -> id
 
 updateStateOutsideSession :: St -> (St -> St) -> EventM () (Next St)
-updateStateOutsideSession st f = continue $
-    if isJust $ st^.stScanningSession then st else f st
+updateStateOutsideSession st f = continue $ ifScanSess st st (f st)
 
 appEvent :: St -> BrickEvent () e -> EventM () (Next St)
 appEvent st (VtyEvent e) =
