@@ -19,16 +19,20 @@ defnList align attr defns = vBox $ line <$> defns
   where
     line (label, content) = markup $
         (T.pack label @@ labelAttr) <> (T.pack sep @@ V.defAttr)
-        <> (if align == AlignRight
-            then (T.pack (gap label content) @@ V.defAttr)
-            else mempty
-           )
+        <> (T.pack (gap label content) @@ V.defAttr)
         <> (T.pack content @@ V.defAttr)
 
-    gap a b = take (maxWidth - length a - length b - length sep) $
-        repeat ' '
+    gap a b
+        | align == AlignRight =
+              take (maxWidth - length a - length b - length sep) $
+              repeat ' '
+        | align == AlignLeft =
+              take (maxLabelWidth - length a) $
+              repeat ' '
+
     maxWidth = maximum $
         map (\(x,y) -> length sep + length x + length y) defns
+    maxLabelWidth = maximum $ map (\(x,y) -> length x) defns
     sep = if align == AlignRight then ":   " else ": "
 
     labelAttr = maybe V.defAttr id attr
