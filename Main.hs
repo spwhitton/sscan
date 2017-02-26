@@ -111,7 +111,20 @@ abortScanSess st = do
         & stPageCount .~ Nothing
 
 finishScanSess :: St -> IO St
-finishScanSess st = undefined
+finishScanSess st = do
+    void $ forkFinally (finishScanSess' st) $ \result ->
+        case result of
+          Right _ -> maybe (return ())
+              removeDirectoryRecursive
+              (st^.stScanningSession)
+    return $ st
+        & stScanningSession .~ Nothing
+        & stPageCount .~ Nothing
+
+-- run OCRmyPDF, pdftk etc., and if any process existed non-zero,
+-- record to a log file in the outdir
+finishScanSess' :: St -> IO St
+finishScanSess' st = undefined
 
 scanNextPage :: St -> IO St
 scanNextPage st = undefined
