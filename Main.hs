@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+import           Control.Concurrent     (forkFinally)
 import           Control.Monad          (void)
 import           Data.Monoid
 import qualified Data.Text              as T
@@ -36,7 +37,7 @@ drawUI st = [ui]
               , vLimit 6 $ C.center $ actionsBox
               ]
     status = str $ case st^.stPageCount of
-      Just n -> "Scanned " ++ show n ++ " pages"
+      Just n  -> "Scanned " ++ show n ++ " pages"
       Nothing -> "Ready to scan first page"
     settingsBox = defnList AlignRight Nothing
         [ ("run OCRmyPDF", if st^.stOCR then "yes" else "no")
