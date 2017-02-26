@@ -104,7 +104,7 @@ main = do
             , _stPaper           = paper
             , _stDefaultPaper    = paper
             , _stDPI             = 300
-            , _stOutFormat    = PDF
+            , _stOutFormat       = PDF
             , _stOutdir          = home </> "tmp"
             }
     void $ defaultMain theApp initialState
