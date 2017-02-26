@@ -36,7 +36,7 @@ drawUI st = [ui]
               , padAll 1 $ C.center $ actionsBox
               ]
     status = str "Ready to scan first page"
-    settingsBox = defnList
+    settingsBox = defnList AlignRight Nothing
         [ ("run OCRmyPDF", if st^.stOCR then "yes" else "no")
         , ("colour data",   show $ st^.stColour)
         , ("page size",     show $ st^.stPaper)
@@ -44,12 +44,9 @@ drawUI st = [ui]
         , ("output format", show $ st^.stOutFormat)
         , ("output dir",    st^.stOutdir)
         ]
-    presetsBox = vBox $
-        (\(Preset k desc _) ->
-            markup $
-            (((T.pack [k]) <> ": ") @@ (V.withStyle V.currentAttr V.bold))
-            <> (desc @@ fg V.white))
-        <$> presets
+    presetsBox = defnList AlignLeft
+        (Just $ V.withStyle V.currentAttr V.bold)
+        (map (\(Preset k desc _) -> ([k], desc)) presets)
     actionsBox = str "actions"
 
 handleHotKey :: St -> Char -> EventM () (Next St)
