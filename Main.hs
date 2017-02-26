@@ -54,7 +54,7 @@ drawUI st = [ui]
          then (if isJust $ st^.stScanningSession
                then [ ("SPC", "scan next page")
                     , ("RET", "scan final page")
-                    , ("q", "declare last page was final page")
+                    , ("q", "declare last scanned page was the final page")
                     ]
                else [ ("SPC", "scan first page of multi-page document")
                     , ("RET", "scan single page document")
