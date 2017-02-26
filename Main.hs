@@ -66,8 +66,18 @@ drawUI st = [ui]
               ]
         )
 
+handleQ :: St -> EventM () (Next St)
+handleQ st = undefined
+
+handleRET :: St -> EventM () (Next St)
+handleRET st = undefined
+
+handleSPC :: St -> EventM () (Next St)
+handleSPC st = undefined
+
 handleHotKey :: St -> Char -> EventM () (Next St)
-handleHotKey st 'q' = halt st
+handleHotKey st 'q' = handleQ st
+handleHotKey st ' ' = handleSPC st
 handleHotKey st 'o' = continue $ st & stOCR .~ (not $ st^.stOCR)
 handleHotKey st 'c' = continue $
     st & stColour .~ (cycleColour $ st^.stColour)
@@ -80,6 +90,7 @@ handleHotKey st c = case lookupPreset c of
 appEvent :: St -> BrickEvent () e -> EventM () (Next St)
 appEvent st (VtyEvent e) =
     case e of
+      V.EvKey (V.KEnter) []  -> handleRET st
       V.EvKey (V.KChar c) [] -> handleHotKey st c
       _                      -> continue st
 appEvent st _ = continue st
