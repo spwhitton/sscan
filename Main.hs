@@ -34,7 +34,7 @@ drawUI st = [ui]
               , hBorderWithLabel (str "[ Presets ]")
               , padAll 1 $ C.center $ presetsBox
               , hBorderWithLabel (str "[ Actions ]")
-              , vLimit 5 $ C.center $ actionsBox
+              , vLimit 6 $ C.center $ actionsBox
               ]
     status = str "Ready to scan first page"
     settingsBox = defnList AlignRight Nothing
