@@ -35,7 +35,9 @@ drawUI st = [ui]
               , hBorderWithLabel (str "[ Actions ]")
               , vLimit 6 $ C.center $ actionsBox
               ]
-    status = str "Ready to scan first page"
+    status = str $ case st^.stPageCount of
+      Just n -> "Scanned " ++ show n ++ " pages"
+      Nothing -> "Ready to scan first page"
     settingsBox = defnList AlignRight Nothing
         [ ("run OCRmyPDF", if st^.stOCR then "yes" else "no")
         , ("colour data",   show $ st^.stColour)
@@ -139,6 +141,7 @@ main = do
     let paper = if papersize == "letter" then Letter else A4
         initialState = St
             { _stScanningSession = Nothing
+            , _stPageCount       = Nothing
             , _stOCR             = True
             , _stColour          = Greyscale
             , _stPaper           = paper

@@ -38,6 +38,9 @@ data St =
     St { _stScanningSession :: Maybe FilePath -- ^ if a session is in
                                               -- progress, accmulate
                                               -- scans in this dir
+       , _stPageCount       :: Maybe Int -- ^ if a session is in
+                                         -- progress, the number of
+                                         -- pages scanned thus far
        , _stOCR             :: Bool -- ^ whether to use OCRmyPDF
        , _stColour          :: Colour
        , _stPaper           :: Paper -- ^ currently selected paper size
