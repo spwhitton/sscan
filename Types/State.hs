@@ -29,6 +29,7 @@ type DPI = Int
 
 -- | Output format
 data OutputFormat = PDF | PNG
+    deriving (Eq, Show)
 
 -- | Application state
 data St =

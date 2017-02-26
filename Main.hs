@@ -38,10 +38,11 @@ drawUI st = [ui]
     status = str "Ready to scan first page"
     settingsBox = defnList
         [ ("run OCRmyPDF", if st^.stOCR then "yes" else "no")
-        , ("colour data",  show $ st^.stColour)
-        , ("page size",    show $ st^.stPaper)
-        , ("DPI",          show $ st^.stDPI)
-        , ("output dir",   st^.stOutdir)
+        , ("colour data",   show $ st^.stColour)
+        , ("page size",     show $ st^.stPaper)
+        , ("DPI",           show $ st^.stDPI)
+        , ("output format", show $ st^.stOutFormat)
+        , ("output dir",    st^.stOutdir)
         ]
     presetsBox = vBox $
         (\(Preset k desc _) ->
