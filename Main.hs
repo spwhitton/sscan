@@ -27,7 +27,7 @@ drawUI :: St -> [Widget ()]
 drawUI st = [ui]
   where
     ui = vBox [ hBorderWithLabel (str "[ Status ]")
-              , C.center $ status
+              , vLimit 3 $ C.center $ status
               , hBorderWithLabel (str "[ Current settings ]")
               , padAll 1 $ C.center $ settingsBox
               , hBorderWithLabel (str "[ Presets ]")
