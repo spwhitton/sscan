@@ -55,6 +55,7 @@ drawUI st = [ui]
                then [ ("SPC", "scan next page")
                     , ("RET", "scan final page")
                     , ("q", "declare last scanned page was the final page")
+                    , ("ESC", "abort/restart scanning this document")
                     ]
                else [ ("SPC", "scan first page of multi-page document")
                     , ("RET", "scan single page document")
@@ -74,6 +75,9 @@ handleRET st = undefined
 
 handleSPC :: St -> EventM () (Next St)
 handleSPC st = undefined
+
+handleESC :: St -> EventM () (Next St)
+handleESC st = undefined
 
 handleHotKey :: St -> Char -> EventM () (Next St)
 handleHotKey st 'q' = handleQ st
@@ -100,6 +104,7 @@ appEvent :: St -> BrickEvent () e -> EventM () (Next St)
 appEvent st (VtyEvent e) =
     case e of
       V.EvKey (V.KEnter) []  -> handleRET st
+      V.EvKey (V.KEsc) []    -> handleESC st
       V.EvKey (V.KChar c) [] -> handleHotKey st c
       _                      -> continue st
 appEvent st _ = continue st
