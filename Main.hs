@@ -8,7 +8,8 @@ import qualified Data.Text              as T
 import qualified Graphics.Vty           as V
 import           Lens.Micro             ((&), (.~), (^.))
 import           System.Directory       (getHomeDirectory,
-                                         getTemporaryDirectory)
+                                         getTemporaryDirectory,
+                                         removeDirectoryRecursive)
 import           System.FilePath        ((</>))
 import           System.IO.Temp         (createTempDirectory)
 
@@ -101,7 +102,13 @@ beginScanSess st = do
         & stPageCount .~ (Just 0)
 
 abortScanSess :: St -> EventM () St
-abortScanSess st = undefined
+abortScanSess st = do
+    maybe (return ())
+        (liftIO . removeDirectoryRecursive)
+        (st^.stScanningSession)
+    return $ st
+        & stScanningSession .~ Nothing
+        & stPageCount .~ Nothing
 
 finishScanSess :: St -> EventM () St
 finishScanSess st = undefined
