@@ -8,6 +8,9 @@ command and a flatbed scanner.
 I wrote sscan because I often need to scan multi-page documents on my
 GNU/Linux system, and I have only a flatbed scanner, without an ADF.
 
+sscan was originally a crude Python script.  Now it is a Haskell
+program.
+
 ## Screenshot
 
 [later]
