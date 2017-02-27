@@ -1,6 +1,6 @@
 name:                sscan
 version:             0.1.0.0
--- synopsis:            
+synopsis:            text UI for scanning with SANE
 -- description:         
 license:             GPL-3
 license-file:        LICENSE
