@@ -40,9 +40,10 @@ drawUI st = [ui]
               , hBorderWithLabel (str "[ Actions ]")
               , vLimit 6 $ C.center $ actionsBox
               ]
-    status = str $ case st^.stPageCount of
-      Just n  -> "Scanned " ++ show n ++ " pages"
-      Nothing -> "Ready to scan first page"
+    status = str $ maybe
+        "Ready to scan first page"
+        (\(ScanSess _ p) -> "Scanned " ++ show p ++ " pages")
+        (st^.stScanSess)
     settingsBox = defnList AlignRight Nothing
         [ ("run OCRmyPDF", if st^.stOCR then "yes" else "no")
         , ("colour data",   show $ st^.stColour)
@@ -101,29 +102,23 @@ beginScanSess :: St -> IO St
 beginScanSess st = do
     temp <- getTemporaryDirectory
         >>= \tmpdir -> createTempDirectory tmpdir "sscan"
-    return $ st
-        & stScanningSession .~ (Just temp)
-        & stPageCount .~ (Just 0)
+    return $ st & stScanSess .~ (Just $ ScanSess temp 0)
 
 abortScanSess :: St -> IO St
 abortScanSess st = do
     maybe (return ())
-        removeDirectoryRecursive
-        (st^.stScanningSession)
-    return $ st
-        & stScanningSession .~ Nothing
-        & stPageCount .~ Nothing
+        (\(ScanSess d _) -> removeDirectoryRecursive d)
+        (st^.stScanSess)
+    return $ st & stScanSess .~ Nothing
 
 finishScanSess :: St -> IO St
 finishScanSess st = do
     void $ forkFinally (finishScanSess' st) $ \result ->
         case result of
           Right _ -> maybe (return ())
-              removeDirectoryRecursive
-              (st^.stScanningSession)
-    return $ st
-        & stScanningSession .~ Nothing
-        & stPageCount .~ Nothing
+              (\(ScanSess d _) -> removeDirectoryRecursive d)
+              (st^.stScanSess)
+    return $ st & stScanSess .~ Nothing
 
 -- run OCRmyPDF, pdftk etc., and if any process existed non-zero,
 -- record to a log file in the outdir
@@ -139,19 +134,16 @@ scanNextPage st = undefined
 handleHotKey :: St -> Char -> EventM () (Next St)
 handleHotKey st 'q' = handleQ st
 handleHotKey st ' ' = handleSPC st
-handleHotKey st 'o' = updateStateOutsideSession st
+handleHotKey st 'o' = continue $ updateSt st
     (\s -> s & stOCR .~ (not $ st^.stOCR))
-handleHotKey st 'c' = updateStateOutsideSession st
+handleHotKey st 'c' = continue $ updateSt st
     (\s -> s & stColour .~ (cycleColour $ st^.stColour))
-handleHotKey st 'p' = updateStateOutsideSession st
+handleHotKey st 'p' = continue $ updateSt st
     (\s -> s & stPaper .~ (cyclePaper $ st^.stPaper))
-handleHotKey st c = updateStateOutsideSession st $
+handleHotKey st c = continue $ updateSt st $
     case lookupPreset c of
       Just (Preset _ _ f) -> f
       _                   -> id
-
-updateStateOutsideSession :: St -> (St -> St) -> EventM () (Next St)
-updateStateOutsideSession st f = continue $ ifScanSess st st (f st)
 
 appEvent :: St -> BrickEvent () e -> EventM () (Next St)
 appEvent st (VtyEvent e) =
@@ -176,14 +168,13 @@ main = do
     papersize <- init <$> readFile "/etc/papersize"
     let paper = if papersize == "letter" then Letter else A4
         initialState = St
-            { _stScanningSession = Nothing
-            , _stPageCount       = Nothing
-            , _stOCR             = True
-            , _stColour          = Greyscale
-            , _stPaper           = paper
-            , _stDefaultPaper    = paper
-            , _stDPI             = 300
-            , _stOutFormat       = PDF
-            , _stOutdir          = home </> "tmp"
+            { _stScanSess     = Nothing
+            , _stOCR          = True
+            , _stColour       = Greyscale
+            , _stPaper        = paper
+            , _stDefaultPaper = paper
+            , _stDPI          = 300
+            , _stOutFormat    = PDF
+            , _stOutdir       = home </> "tmp"
             }
     void $ defaultMain theApp initialState

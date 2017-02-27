@@ -33,26 +33,31 @@ type DPI = Int
 data OutputFormat = PDF | PNG
     deriving (Eq, Show)
 
+-- | An active multi-page scanning session
+data ScanSess = ScanSess
+    FilePath                    -- ^ session's tmpdir
+    Int                         -- ^ total pages scanner thus far
+
 -- | Application state
 data St =
-    St { _stScanningSession :: Maybe FilePath -- ^ if a session is in
-                                              -- progress, accmulate
-                                              -- scans in this dir
-       , _stPageCount       :: Maybe Int -- ^ if a session is in
-                                         -- progress, the number of
-                                         -- pages scanned thus far
-       , _stOCR             :: Bool -- ^ whether to use OCRmyPDF
-       , _stColour          :: Colour
-       , _stPaper           :: Paper -- ^ currently selected paper size
-       , _stDefaultPaper    :: Paper -- ^ locale's default paper size
-       , _stDPI             :: DPI
-       , _stOutFormat       :: OutputFormat
-       , _stOutdir          :: FilePath -- ^ where to save final PDFs
+    St { _stScanSess     :: Maybe ScanSess
+       , _stOCR          :: Bool -- ^ whether to use OCRmyPDF
+       , _stColour       :: Colour
+       , _stPaper        :: Paper -- ^ currently selected paper size
+       , _stDefaultPaper :: Paper -- ^ locale's default paper size
+       , _stDPI          :: DPI
+       , _stOutFormat    :: OutputFormat
+       , _stOutdir       :: FilePath -- ^ where to save final PDFs
        }
-
--- other device-specific scanimage options we could support: --swdespeck; --color-filter; --depth
+-- other device-specific scanimage options the old script supported: --swdespeck; --color-filter; --depth
 
 makeLenses ''St
 
 ifScanSess :: St -> a -> a -> a
-ifScanSess st a b = if isJust $ st^.stScanningSession then a else b
+ifScanSess st a b = if isJust $ st^.stScanSess then a else b
+
+-- | Update a state when there is no scanning session in progress (the
+-- state should not be changed when some pages have already been
+-- scanned)
+updateSt :: St -> (St -> St) -> St
+updateSt st f = ifScanSess st st (f st)
