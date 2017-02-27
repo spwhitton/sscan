@@ -3,7 +3,7 @@
 module Types.State where
 
 import           Data.Maybe
-import           Lens.Micro    ((^.))
+import           Lens.Micro    ((&), (.~), (^.))
 import           Lens.Micro.TH (makeLenses)
 
 -- | Whether to do colour, grey or b&w scans
@@ -61,3 +61,6 @@ ifScanSess st a b = if isJust $ st^.stScanSess then a else b
 -- scanned)
 updateSt :: St -> (St -> St) -> St
 updateSt st f = ifScanSess st st (f st)
+
+resetScanSess :: St -> St
+resetScanSess st = st & stScanSess .~ Nothing
