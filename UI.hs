@@ -110,21 +110,6 @@ handleSPC st = undefined
 handleESC :: St -> EventM () (Next St)
 handleESC st = undefined
 
-beginScanSess :: St -> EventM () St
-beginScanSess st = undefined
-
-abortScanSess :: St -> EventM () (Next St)
-abortScanSess st = undefined
-
-finishScanSess :: St -> EventM () (Next St)
-finishScanSess st = undefined
-
--- run scanimage with appropriate arguments.  If scanimage exists
--- non-zero, inform the user that we will abort the scan session,
--- pause for them to read the output, and then abort the scan session
-scanNextPage :: St -> IO St
-scanNextPage st = undefined
-
 handleHotKey :: St -> Char -> EventM () (Next St)
 handleHotKey st 'q' = handleQ st
 handleHotKey st ' ' = handleSPC st

@@ -111,6 +111,9 @@ makeInitialState = do
 scanPage :: St -> FilePath -> IO ()
 scanPage st dir = do
     outH <- openFile outF WriteMode
+    -- TODO if scanimage exists non-zero, inform the user that we will
+    -- abort the scan session, pause for them to read the output, and then
+    -- abort the scan session
     createProcessWait_ "scanimage" (proc "scanimage" (scanimageArgs st))
         { std_in = NoStream
         , std_out = UseHandle outH
