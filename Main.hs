@@ -121,7 +121,7 @@ scanPage st dir = withFile outF WriteMode $ \outH -> do
     case exit of
       ExitSuccess -> return True
       ExitFailure c -> do
-          putStrLn $ "scanimage exited with exit code" ++ show c ++ "!"
+          putStrLn $ "scanimage exited with exit code " ++ show c ++ "!"
           putStrLn "This might because sscan tried to use an option that your"
           putStrLn "scanner does not support.  Please try another preset."
           putStrLn "Press any key to abort this scanning session..."
