@@ -139,17 +139,19 @@ scanimageArgs st =
         Colour    -> "Color"
         Greyscale -> "Gray"
         Lineart   -> "Lineart"
-    , "-x"
-    , show $ case st^.stPaper of
-        A4     -> 210
-        Letter -> 215.9
-        Photo  -> 150
-    , "-y"
-    , show $ case st^.stPaper of
-        A4     -> 297
-        Letter -> 279.4
-        Photo  -> 100
-    ]
+    ] ++ case st^.stPaper of
+           Auto -> ["--swcrop=yes"]
+           _ -> [ "-x"
+                , show $ case st^.stPaper of
+                    A4     -> 210
+                    Letter -> 215.9
+                    Photo  -> 150
+                , "-y"
+                , show $ case st^.stPaper of
+                    A4     -> 297
+                    Letter -> 279.4
+                    Photo  -> 100
+                ]
 -- other device-specific scanimage options the old script supported:
 -- --swdespeck; --color-filter; --depth
 
