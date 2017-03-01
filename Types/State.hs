@@ -61,6 +61,14 @@ data ScanSess = ScanSess
     FilePath                    -- ^ session's tmpdir
     Int                         -- ^ total pages scanner thus far
 
+-- | An sscan operation selected by the user in the UI
+data Command
+    = NextPage                  -- ^ scan first page or another page
+    | FinalPage                 -- ^ scan final page (might be the first page)
+    | Finalise                  -- ^ make the previous scanned page the final page of the document
+    | Abort                     -- ^ abandon the current scan session
+    | Quit                      -- ^ quit sscan
+
 -- | Application state
 data St =
     St { _stScanSess     :: Maybe ScanSess
@@ -71,6 +79,7 @@ data St =
        , _stDPI          :: DPI
        , _stOutFormat    :: OutputFormat
        , _stOutdir       :: FilePath -- ^ where to save final PDFs
+       , _stCommand      :: Command
        }
 -- other device-specific scanimage options the old script supported: --swdespeck; --color-filter; --depth
 
