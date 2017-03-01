@@ -101,7 +101,7 @@ drawUI st = [ui]
 handleQ :: St -> EventM () (Next St)
 handleQ st = halt $ ifScanSess st
     (setScanSessCommand Finalise st)
-    (resetScanSess st)
+    (resetScanSess st)          -- misnomer: this causes sscan to exit
 
 handleRET :: St -> EventM () (Next St)
 handleRET st = halt $ setScanSessCommand FinalPage st
