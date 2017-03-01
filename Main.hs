@@ -32,7 +32,8 @@ import           System.Directory      (getHomeDirectory,
                                         withCurrentDirectory)
 import           System.Exit           (ExitCode (..))
 import           System.FilePath       ((<.>), (</>))
-import           System.IO             (IOMode (WriteMode), hClose, openFile)
+import           System.IO             (IOMode (WriteMode), hClose, openFile,
+                                        withFile)
 import           System.IO.Temp        (withSystemTempDirectory)
 import           System.Process
 
@@ -110,20 +111,20 @@ makeInitialState = do
         , _stOutdir       = home </> "tmp"
         }
 
-scanPage :: St -> FilePath -> IO ()
-scanPage st dir = do
-    outH <- openFile outF WriteMode
+scanPage :: St -> FilePath -> IO Bool
+scanPage st dir = withFile outF WriteMode $ \outH -> do
     exit <- createProcessWait_ "scanimage" (proc "scanimage" (scanimageArgs st))
         { std_in = NoStream
         , std_out = UseHandle outH
         , std_err = Inherit     -- let the user see progress bar
         }
     case exit of
-      -- TODO inform the user that we will abort the scan session,
-      -- pause for them to read scanimage's error output, and then
-      -- abort the scan session
-      ExitFailure _ -> undefined
-    hClose outH
+      ExitSuccess -> return True
+      ExitFailure c -> do
+          putStrLn $ "scanimage exited with exit code" ++ show c ++ "!"
+          putStrLn "press any key to abort this scanning session"
+          void getChar
+          return False
   where
       outF = dir </> "page" ++ (show $ getLatestPage st + 1) <.> "tiff"
 
@@ -158,7 +159,10 @@ processCommand st = case st^.stScanSess of
       processCommand (setScanSessDir dir st)
     Just dir -> case command of
       Abort -> newSession
-      NextPage -> scanPage st dir >> presentUI (incrementPages st)
+      NextPage -> scanPage st dir >>= \scanned ->
+        if scanned
+        then presentUI (incrementPages st)
+        else newSession
       FinalPage -> scanPage st dir
                 >> finaliseSession (incrementPages st) dir >> newSession
       Finalise -> finaliseSession st dir >> newSession
