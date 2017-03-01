@@ -85,7 +85,7 @@ drawUI st = [ui]
          then (ifScanSess st
                 [ ("SPC", "scan next page")
                 , ("RET", "scan final page")
-                , ("q", "declare last scanned page was the final page")
+                , ("q", "declare most recent scanned page was the final page")
                 , ("ESC", "abort/restart scanning this document")
                 ]
                 [ ("SPC", "scan first page of multi-page document")
@@ -93,7 +93,7 @@ drawUI st = [ui]
                 , ("q", "quit sscan")
                 ]
               )
-         else [ ("SPC", "scan page")
+         else [ ("SPC|RET", "scan page")
               , ("q", "quit sscan")
               ]
         )
@@ -107,7 +107,9 @@ handleRET :: St -> EventM () (Next St)
 handleRET st = halt $ setScanSessCommand FinalPage st
 
 handleSPC :: St -> EventM () (Next St)
-handleSPC st = halt $ setScanSessCommand NextPage st
+handleSPC st = case st^.stOutFormat of
+  PDF -> halt $ setScanSessCommand NextPage st
+  PNG -> halt $ setScanSessCommand FinalPage st
 
 handleESC :: St -> EventM () (Next St)
 handleESC st = ifScanSess st
