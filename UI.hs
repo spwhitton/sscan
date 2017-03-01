@@ -58,9 +58,9 @@ drawUI st = [ui]
     ui = vBox [ hBorderWithLabel (str "[ Status ]")
               , vLimit 3 $ C.center $ status
               , hBorderWithLabel (str "[ Current settings ]")
-              , padAll 1 $ C.center $ settingsBox
+              , vLimit 8 $ C.center $ settingsBox
               , hBorderWithLabel (str "[ Presets ]")
-              , padAll 1 $ C.center $ presetsBox
+              , vLimit (2 + length presets) $ C.center $ presetsBox
               , hBorderWithLabel (str "[ Actions ]")
               , vLimit 6 $ C.center $ actionsBox
               ]
