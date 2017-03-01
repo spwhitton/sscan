@@ -101,7 +101,7 @@ data St =
 makeLenses ''St
 
 ifScanSess :: St -> a -> a -> a
-ifScanSess st a b = maybe b (const a) (st^.stScanSess)
+ifScanSess st a b = if isJust $ st^.stScanSess then a else b
 
 -- | Update a state when there is no scanning session in progress (the
 -- state should not be changed when some pages have already been
