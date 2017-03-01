@@ -23,18 +23,18 @@ along with sscan.  If not, see <http://www.gnu.org/licenses/>.
 
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Control.Concurrent (forkFinally)
+import           Control.Concurrent (forkIO)
 import           Control.Monad      (void)
 import           Lens.Micro         ((&), (.~), (^.))
 import           System.Directory   (getHomeDirectory, removeDirectoryRecursive)
 import           System.FilePath    ((</>))
-import           System.IO.Temp     (createTempDirectory)
+import           System.IO.Temp     (withSystemTempDirectory)
 
 import           Types.State
 import           UI
 
--- processScanSessDir :: ScanSess -> IO ()
--- processScanSessDir ss@(ScanSess d n) =
+processScanSessDir :: St -> IO ()
+processScanSessDir = undefined
 --     -- rather than do any error handling here, we write a logfile to
 --     -- the outdir for user inspection
 --     void $ forkFinally process $ \_ -> nukeScanSessDir ss
@@ -57,14 +57,31 @@ makeInitialState = do
         , _stDPI          = 300
         , _stOutFormat    = PDF
         , _stOutdir       = home </> "tmp"
-        , _stCommand      = Quit
         }
 
-uiLoop :: St -> IO ()
-uiLoop st = runTheApp st >>= \newSt -> do
-    undefined
+scanPage :: FilePath -> IO ()
+scanPage dir = undefined
 
-main = makeInitialState >>= uiLoop
+processCommand :: St -> IO ()
+processCommand st = case st^.stScanSess of
+  Nothing -> return ()          -- quit sscan
+  Just (ScanSess command pages maybeDir) -> case maybeDir of
+    Nothing -> withSystemTempDirectory "sscan" $ \dir ->
+      processCommand (setScanSessDir dir st)
+    Just dir -> case command of
+      Abort -> newSession
+      NextPage -> scanPage dir >> presentUI (incrementPages st)
+      FinalPage -> scanPage dir
+                >> finaliseSession (incrementPages st) >> newSession
+      Finalise -> finaliseSession st >> newSession
+  where
+    newSession = presentUI $ resetScanSess st
+    finaliseSession = forkIO . processScanSessDir
+
+presentUI    :: St -> IO ()
+presentUI st = runTheApp st >>= processCommand
+
+main = makeInitialState >>= presentUI
 
 -- TODO scanning should happen in main.  We use withTempDir to setup a
 -- session, and then fire up brick again.  add additional state

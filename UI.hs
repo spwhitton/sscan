@@ -66,7 +66,7 @@ drawUI st = [ui]
               ]
     status = str $ maybe
         "Ready to scan first page"
-        (\(ScanSess _ p) -> "Scanned " ++ show p ++ " pages")
+        (\(ScanSess _ p _) -> "Scanned " ++ show p ++ " pages")
         (st^.stScanSess)
     settingsBox = defnList AlignRight Nothing
         [ ("run OCRmyPDF", if st^.stOCR then "yes" else "no")
