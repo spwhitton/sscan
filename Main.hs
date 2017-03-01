@@ -65,9 +65,8 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
               , std_out = NoStream
               , std_err = UseHandle logH
               }
-          -- 4. qpdf (ocrmypdf might invoke this; do it again as I
-          -- think that OCRmyPDF isn't using its --linearize option,
-          -- which shrinks the PDF)
+          -- 4. qpdf (ocrmypdf invokes qpdf but it doesn't use
+          -- --linearize, which shrinks the PDF, often substantially)
           createProcessWait_ "qpdf" (proc "qpdf" ["--linearize", "temp.pdf"])
               { std_in = NoStream
               , std_out = UseHandle outH
