@@ -25,7 +25,9 @@ along with sscan.  If not, see <http://www.gnu.org/licenses/>.
 
 import           Control.Concurrent    (forkIO)
 import           Control.Monad         (void, when)
-import           Data.Time.Clock.POSIX (getPOSIXTime)
+import           Data.Time.Clock.POSIX (getPOSIXTime, posixSecondsToUTCTime)
+import           Data.Time.Format      (defaultTimeLocale, formatTime,
+                                        iso8601DateFormat)
 import           Lens.Micro            ((&), (.~), (^.))
 import           System.Directory      (getHomeDirectory,
                                         removeDirectoryRecursive, renamePath,
@@ -93,7 +95,15 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
         PDF -> "pdf"
         PNG -> "png"
       allPages = map (\n -> "page" ++ show n <.> "tiff") [1..(getLatestPage st)]
-      metadata posix = undefined
+      metadata posix = let date = formatTime
+                                  defaultTimeLocale
+                                  (iso8601DateFormat Nothing)
+                                  (posixSecondsToUTCTime posix)
+                       in unlines [ "InfoKey: Title"
+                                  , "InfoValue: scan of " ++ date
+                                  , "InfoKey: Author"
+                                  , "InfoValue: spw"
+                                  ]
 
 makeInitialState :: IO St
 makeInitialState = do
