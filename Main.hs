@@ -41,7 +41,8 @@ import           UI
 
 processScanSessDir :: St -> FilePath -> IO ()
 processScanSessDir st dir = withCurrentDirectory dir $ do
-    stamp <- round <$> getPOSIXTime
+    posix <- getPOSIXTime
+    let stamp = show . round $ posix
     logH <- openFile (logFile stamp) WriteMode
     outH <- openFile (outFile stamp) WriteMode
     case st^.stOutFormat of
@@ -51,7 +52,7 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
               (proc "convert" (allPages ++ ["temp.pdf"]))
           -- 2. set metadata with pdftk
           renamePath "temp.pdf" "temp2.pdf"
-          writeFile "metadata" metadata
+          writeFile "metadata" (metadata posix)
           createProcessWait_ "pdftk"
               (proc "pdftk" ["temp2.pdf", "update_info", "metadata", "temp.pdf"])
               { std_in = NoStream
@@ -85,13 +86,13 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
     hClose outH
     hClose logH
   where
-      logFile stamp = (st^.stOutdir) </> show stamp <.> "log"
-      outFile stamp = (st^.stOutdir) </> show stamp <.> outExt
+      logFile stamp = (st^.stOutdir) </> stamp <.> "log"
+      outFile stamp = (st^.stOutdir) </> stamp <.> outExt
       outExt = case st^.stOutFormat of
         PDF -> "pdf"
         PNG -> "png"
       allPages = map (\n -> "page" ++ show n <.> "tiff") [1..(getLatestPage st)]
-      metadata = undefined
+      metadata posix = undefined
 
 makeInitialState :: IO St
 makeInitialState = do
