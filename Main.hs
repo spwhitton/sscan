@@ -23,27 +23,74 @@ along with sscan.  If not, see <http://www.gnu.org/licenses/>.
 
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Control.Concurrent (forkIO)
-import           Control.Monad      (void)
-import           Lens.Micro         ((&), (.~), (^.))
-import           System.Directory   (getHomeDirectory, removeDirectoryRecursive)
-import           System.FilePath    ((</>), (<.>))
-import           System.IO          (openFile, hClose, IOMode(WriteMode))
-import           System.IO.Temp     (withSystemTempDirectory)
+import           Control.Concurrent    (forkIO)
+import           Control.Monad         (void, when)
+import           Data.Time.Clock.POSIX (getPOSIXTime)
+import           Lens.Micro            ((&), (.~), (^.))
+import           System.Directory      (getHomeDirectory,
+                                        removeDirectoryRecursive, renamePath,
+                                        withCurrentDirectory)
+import           System.FilePath       ((<.>), (</>))
+import           System.IO             (IOMode (WriteMode), hClose, openFile)
+import           System.IO.Temp        (withSystemTempDirectory)
 import           System.Process
 
 import           Types.State
 import           UI
 
-processScanSessDir :: St -> IO ()
-processScanSessDir = undefined
---     -- rather than do any error handling here, we write a logfile to
---     -- the outdir for user inspection
---     void $ forkFinally process $ \_ -> nukeScanSessDir ss
---   where
---     -- run OCRmyPDF, pdftk etc., and if any process existed non-zero,
---     -- record to a log file in the outdir
---     process = undefined
+processScanSessDir :: St -> FilePath -> IO ()
+processScanSessDir st dir = withCurrentDirectory dir $ do
+    stamp <- round <$> getPOSIXTime
+    logH <- openFile (logFile stamp) WriteMode
+    outH <- openFile (outFile stamp) WriteMode
+    case st^.stOutFormat of
+      PDF -> do
+          -- 1. convert tiff->PDF
+          createProcessWait_ "convert"
+              (proc "convert" (allPages ++ ["temp.pdf"]))
+          -- 2. set metadata with pdftk
+          renamePath "temp.pdf" "temp2.pdf"
+          writeFile "metadata" metadata
+          createProcessWait_ "pdftk"
+              (proc "pdftk" ["temp2.pdf", "update_info", "metadata", "temp.pdf"])
+              { std_in = NoStream
+              , std_out = NoStream
+              , std_err = UseHandle logH
+              }
+          -- 3. maybe ocrmypdf
+          when (st^.stOCR) $ renamePath "temp.pdf" "temp2.pdf"
+              >> createProcessWait_ "OCRmyPDF"
+              (proc "ocrmypdf" ["-c", "-i", "-r", "temp2.pdf", "temp.pdf"])
+              { std_in = NoStream
+              , std_out = NoStream
+              , std_err = UseHandle logH
+              }
+          -- 4. qpdf (ocrmypdf might invoke this; do it again as I
+          -- think that OCRmyPDF isn't using its --linearize option,
+          -- which shrinks the PDF)
+          createProcessWait_ "qpdf" (proc "qpdf" ["--linearize", "temp.pdf"])
+              { std_in = NoStream
+              , std_out = UseHandle outH
+              , std_err = UseHandle logH
+              }
+      -- assume that only one page was scanned.  Not clear how we
+      -- can avoid this assumption when producing a PNG
+      PNG -> createProcessWait_ "convert"
+        (proc "convert" ["page1" <.> "tiff", "png:-"])
+          { std_in = NoStream
+          , std_out = UseHandle outH
+          , std_err = UseHandle logH
+          }
+    hClose outH
+    hClose logH
+  where
+      logFile stamp = (st^.stOutdir) </> show stamp <.> "log"
+      outFile stamp = (st^.stOutdir) </> show stamp <.> outExt
+      outExt = case st^.stOutFormat of
+        PDF -> "pdf"
+        PNG -> "png"
+      allPages = map (\n -> "page" ++ show n <.> "tiff") [1..(getLatestPage st)]
+      metadata = undefined
 
 makeInitialState :: IO St
 makeInitialState = do
@@ -64,7 +111,7 @@ makeInitialState = do
 scanPage :: St -> FilePath -> IO ()
 scanPage st dir = do
     outH <- openFile outF WriteMode
-    createProcess (proc "scanimage" (scanimageArgs st))
+    createProcessWait_ "scanimage" (proc "scanimage" (scanimageArgs st))
         { std_in = NoStream
         , std_out = UseHandle outH
         , std_err = Inherit     -- let the user see progress bar
@@ -104,16 +151,23 @@ processCommand st = case st^.stScanSess of
       Abort -> newSession
       NextPage -> scanPage st dir >> presentUI (incrementPages st)
       FinalPage -> scanPage st dir
-                >> finaliseSession (incrementPages st) >> newSession
-      Finalise -> finaliseSession st >> newSession
+                >> finaliseSession (incrementPages st) dir >> newSession
+      Finalise -> finaliseSession st dir >> newSession
   where
     newSession = presentUI $ resetScanSess st
-    finaliseSession = forkIO . processScanSessDir
+    finaliseSession st dir = forkIO $ processScanSessDir st dir
 
 presentUI    :: St -> IO ()
 presentUI st = runTheApp st >>= processCommand
 
 main = makeInitialState >>= presentUI
+
+-- | Create a process, wait for it to finish, don't close any
+-- handles used by the CreateProcess record
+createProcessWait_ :: String -> CreateProcess -> IO ()
+createProcessWait_ s c = do
+    (_, _, _, p) <- createProcess_ s c
+    void $ waitForProcess p
 
 -- TODO scanning should happen in main.  We use withTempDir to setup a
 -- session, and then fire up brick again.  add additional state
