@@ -155,6 +155,10 @@ scanimageArgs st =
 -- other device-specific scanimage options the old script supported:
 -- --swdespeck; --color-filter; --depth
 
+-- TODO include usbreset.c as a cbit, and use FFI to optionally reset
+-- the scanner's USB connection after a scan -- this is needed on some
+-- scanners that I occasionally use
+
 processCommand :: St -> IO ()
 processCommand st = case st^.stScanSess of
   Nothing -> return ()          -- quit sscan
