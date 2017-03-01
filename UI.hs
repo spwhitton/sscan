@@ -99,16 +99,20 @@ drawUI st = [ui]
         )
 
 handleQ :: St -> EventM () (Next St)
-handleQ st = undefined
+handleQ st = halt $ ifScanSess st
+    (setScanSessCommand Finalise st)
+    (resetScanSess st)
 
 handleRET :: St -> EventM () (Next St)
-handleRET st = undefined
+handleRET st = halt $ setScanSessCommand FinalPage st
 
 handleSPC :: St -> EventM () (Next St)
-handleSPC st = undefined
+handleSPC st = halt $ setScanSessCommand NextPage st
 
 handleESC :: St -> EventM () (Next St)
-handleESC st = undefined
+handleESC st = ifScanSess st
+    (halt $ setScanSessCommand Abort st)
+    (continue st)
 
 handleHotKey :: St -> Char -> EventM () (Next St)
 handleHotKey st 'q' = handleQ st

@@ -116,6 +116,13 @@ setScanSessDir dir st = case st^.stScanSess of
   Just (ScanSess c p _) ->
       st & stScanSess .~ (Just $ ScanSess c p (Just dir))
 
+setScanSessCommand :: Command -> St -> St
+setScanSessCommand c st = case st^.stScanSess of
+  Just (ScanSess _ p d) ->
+      st & stScanSess .~ (Just $ ScanSess c p d)
+  Nothing ->
+      st & stScanSess .~ (Just $ ScanSess c 0 Nothing)
+
 incrementPages :: St -> St
 incrementPages st = case st^.stScanSess of
   Nothing -> st
