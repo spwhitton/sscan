@@ -123,3 +123,8 @@ incrementPages st = case st^.stScanSess of
   Nothing -> st
   Just (ScanSess c p d) ->
       st & stScanSess .~ (Just $ ScanSess c (p+1) d)
+
+getLatestPage :: St -> Int
+getLatestPage st = case st^.stScanSess of
+  Nothing -> 0
+  Just (ScanSess _ p _ ) -> p

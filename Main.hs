@@ -27,8 +27,10 @@ import           Control.Concurrent (forkIO)
 import           Control.Monad      (void)
 import           Lens.Micro         ((&), (.~), (^.))
 import           System.Directory   (getHomeDirectory, removeDirectoryRecursive)
-import           System.FilePath    ((</>))
+import           System.FilePath    ((</>), (<.>))
+import           System.IO          (openFile, hClose, IOMode(WriteMode))
 import           System.IO.Temp     (withSystemTempDirectory)
+import           System.Process
 
 import           Types.State
 import           UI
@@ -59,8 +61,38 @@ makeInitialState = do
         , _stOutdir       = home </> "tmp"
         }
 
-scanPage :: FilePath -> IO ()
-scanPage dir = undefined
+scanPage :: St -> FilePath -> IO ()
+scanPage st dir = do
+    outH <- openFile outF WriteMode
+    createProcess (proc "scanimage" (scanimageArgs st))
+        { std_in = NoStream
+        , std_out = UseHandle outH
+        , std_err = Inherit     -- let the user see progress bar
+        }
+    hClose outH
+  where
+      outF = dir </> "page" ++ (show $ getLatestPage st + 1) <.> "tiff"
+
+scanimageArgs :: St -> [String]
+scanimageArgs st =
+    [ "-vp"
+    , "--format=tiff"
+    , "--resolution=" ++ show (st^.stDPI)
+    , "--mode=" ++ case st^.stColour of
+        Colour    -> "Color"
+        Greyscale -> "Gray"
+        Lineart   -> "Lineart"
+    , "-x"
+    , show $ case st^.stPaper of
+        A4     -> 210
+        Letter -> 215.9
+        Photo  -> 150
+    , "-y"
+    , show $ case st^.stPaper of
+        A4     -> 297
+        Letter -> 279.4
+        Photo  -> 100
+    ]
 
 processCommand :: St -> IO ()
 processCommand st = case st^.stScanSess of
@@ -70,8 +102,8 @@ processCommand st = case st^.stScanSess of
       processCommand (setScanSessDir dir st)
     Just dir -> case command of
       Abort -> newSession
-      NextPage -> scanPage dir >> presentUI (incrementPages st)
-      FinalPage -> scanPage dir
+      NextPage -> scanPage st dir >> presentUI (incrementPages st)
+      FinalPage -> scanPage st dir
                 >> finaliseSession (incrementPages st) >> newSession
       Finalise -> finaliseSession st >> newSession
   where
