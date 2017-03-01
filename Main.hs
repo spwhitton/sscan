@@ -30,6 +30,7 @@ import           Lens.Micro            ((&), (.~), (^.))
 import           System.Directory      (getHomeDirectory,
                                         removeDirectoryRecursive, renamePath,
                                         withCurrentDirectory)
+import           System.Exit           (ExitCode (..))
 import           System.FilePath       ((<.>), (</>))
 import           System.IO             (IOMode (WriteMode), hClose, openFile)
 import           System.IO.Temp        (withSystemTempDirectory)
@@ -58,13 +59,14 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
               , std_err = UseHandle logH
               }
           -- 3. maybe ocrmypdf
-          when (st^.stOCR) $ renamePath "temp.pdf" "temp2.pdf"
-              >> createProcessWait_ "OCRmyPDF"
-              (proc "ocrmypdf" ["-c", "-i", "-r", "temp2.pdf", "temp.pdf"])
-              { std_in = NoStream
-              , std_out = NoStream
-              , std_err = UseHandle logH
-              }
+          when (st^.stOCR) $ do
+              renamePath "temp.pdf" "temp2.pdf"
+              void $ createProcessWait_ "OCRmyPDF"
+                  (proc "ocrmypdf" ["-c", "-i", "-r", "temp2.pdf", "temp.pdf"])
+                  { std_in = NoStream
+                  , std_out = NoStream
+                  , std_err = UseHandle logH
+                  }
           -- 4. qpdf (ocrmypdf invokes qpdf but it doesn't use
           -- --linearize, which shrinks the PDF, often substantially)
           createProcessWait_ "qpdf" (proc "qpdf" ["--linearize", "temp.pdf"])
@@ -110,14 +112,16 @@ makeInitialState = do
 scanPage :: St -> FilePath -> IO ()
 scanPage st dir = do
     outH <- openFile outF WriteMode
-    -- TODO if scanimage exists non-zero, inform the user that we will
-    -- abort the scan session, pause for them to read the output, and then
-    -- abort the scan session
-    createProcessWait_ "scanimage" (proc "scanimage" (scanimageArgs st))
+    exit <- createProcessWait_ "scanimage" (proc "scanimage" (scanimageArgs st))
         { std_in = NoStream
         , std_out = UseHandle outH
         , std_err = Inherit     -- let the user see progress bar
         }
+    case exit of
+      -- TODO inform the user that we will abort the scan session,
+      -- pause for them to read scanimage's error output, and then
+      -- abort the scan session
+      ExitFailure _ -> undefined
     hClose outH
   where
       outF = dir </> "page" ++ (show $ getLatestPage st + 1) <.> "tiff"
@@ -168,7 +172,7 @@ main = makeInitialState >>= presentUI
 
 -- | Create a process, wait for it to finish, don't close any
 -- handles used by the CreateProcess record
-createProcessWait_ :: String -> CreateProcess -> IO ()
+createProcessWait_ :: String -> CreateProcess -> IO ExitCode
 createProcessWait_ s c = do
     (_, _, _, p) <- createProcess_ s c
-    void $ waitForProcess p
+    waitForProcess p
