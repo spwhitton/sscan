@@ -95,8 +95,6 @@ data St =
        , _stOutFormat    :: OutputFormat
        , _stOutdir       :: FilePath -- ^ where to save final PDFs
        }
--- other device-specific scanimage options the old script supported:
--- --swdespeck; --color-filter; --depth
 
 makeLenses ''St
 

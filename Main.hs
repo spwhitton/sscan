@@ -142,6 +142,8 @@ scanimageArgs st =
         Letter -> 279.4
         Photo  -> 100
     ]
+-- other device-specific scanimage options the old script supported:
+-- --swdespeck; --color-filter; --depth
 
 processCommand :: St -> IO ()
 processCommand st = case st^.stScanSess of
@@ -170,9 +172,3 @@ createProcessWait_ :: String -> CreateProcess -> IO ()
 createProcessWait_ s c = do
     (_, _, _, p) <- createProcess_ s c
     void $ waitForProcess p
-
--- TODO scanning should happen in main.  We use withTempDir to setup a
--- session, and then fire up brick again.  add additional state
--- element that is the user's chosen action.  i.e. don't use
--- suspendAndResume which is for getting user input, not running the
--- result of the UI.  Move the whole UI to a module
