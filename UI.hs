@@ -107,9 +107,11 @@ handleRET :: St -> EventM () (Next St)
 handleRET st = halt $ setScanSessCommand FinalPage st
 
 handleSPC :: St -> EventM () (Next St)
-handleSPC st = case st^.stOutFormat of
-  PDF -> halt $ setScanSessCommand NextPage st
-  PNG -> halt $ setScanSessCommand FinalPage st
+handleSPC st = halt $ setScanSessCommand
+    (case st^.stOutFormat of
+       PDF -> NextPage
+       PNG -> FinalPage)
+    st
 
 handleESC :: St -> EventM () (Next St)
 handleESC st = ifScanSess st
