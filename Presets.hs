@@ -44,6 +44,7 @@ presets = [ Preset 'H' "handwritten notes" handwrittenNotes
 lookupPreset :: Char -> Maybe Preset
 lookupPreset c = find (\(Preset k _ _) -> c == k) presets
 
+handwrittenNotes :: St -> St
 handwrittenNotes = \st -> st
     { _stOCR     = False
     , _stColour  = Greyscale
@@ -52,6 +53,7 @@ handwrittenNotes = \st -> st
     , _stOutFormat = PDF
     }
 
+typewrittenDocs :: St -> St
 typewrittenDocs = \st -> st
     { _stOCR    = True
     , _stColour = Greyscale
@@ -60,6 +62,7 @@ typewrittenDocs = \st -> st
     , _stOutFormat = PDF
     }
 
+colourPDF :: St -> St
 colourPDF = \st -> st
     { _stOCR = False
     , _stColour = Colour
@@ -68,6 +71,7 @@ colourPDF = \st -> st
     , _stOutFormat = PDF
     }
 
+colourPNG :: St -> St
 colourPNG = \st -> st
     { _stOCR = False
     , _stColour = Colour
@@ -76,6 +80,7 @@ colourPNG = \st -> st
     , _stOutFormat = PNG
     }
 
+colourCroppedPNG :: St -> St
 colourCroppedPNG = \st -> st
     { _stOCR = False
     , _stColour = Colour
@@ -84,6 +89,7 @@ colourCroppedPNG = \st -> st
     , _stOutFormat = PNG
     }
 
+bnwPDF :: St -> St
 bnwPDF = \st -> st
     { _stOCR = False
     , _stColour = Lineart
@@ -92,6 +98,7 @@ bnwPDF = \st -> st
     , _stOutFormat = PDF
     }
 
+photo :: St -> St
 photo = \st -> st
     { _stOCR = False
     , _stColour = Colour

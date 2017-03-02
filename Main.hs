@@ -190,6 +190,7 @@ processCommand st = case st^.stScanSess of
 presentUI    :: St -> IO ()
 presentUI st = runTheApp st >>= processCommand
 
+main :: IO ()
 main = makeInitialState >>= presentUI
 
 -- | Create a process, wait for it to finish, don't close any

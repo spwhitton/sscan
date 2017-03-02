@@ -136,4 +136,5 @@ theApp =
         , appAttrMap = const $ attrMap V.defAttr []
         }
 
+runTheApp :: St -> IO St
 runTheApp = defaultMain theApp
