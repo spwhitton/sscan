@@ -12,6 +12,7 @@ build-type:          Simple
 extra-source-files:
   CHANGELOG
   debian/changelog
+  README.md
 cabal-version:       >=1.10
 
 executable sscan
