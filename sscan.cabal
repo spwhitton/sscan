@@ -9,7 +9,9 @@ maintainer:          spwhitton@spwhitton.name
 copyright:           (C) 2017 Sean Whitton
 category:            Graphics
 build-type:          Simple
-extra-source-files:  ChangeLog.md
+extra-source-files:
+  CHANGELOG
+  debian/changelog
 cabal-version:       >=1.10
 
 executable sscan
