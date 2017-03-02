@@ -46,7 +46,7 @@ processScanSessDir :: St -> FilePath -> IO ()
 processScanSessDir st dir = withCurrentDirectory dir $ do
     posix <- getPOSIXTime
     let stamp = show . round $ posix
-    logH <- openFile (logFile stamp) WriteMode
+    logH <- openFile (logFile stamp) WriteMode -- TODO maybe AppendMode?
     outH <- openFile (outFile stamp) WriteMode
     case st^.stOutFormat of
       PDF -> do
