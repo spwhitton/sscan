@@ -45,13 +45,14 @@ defnList align attr defns = vBox $ line <$> defns
         <> (T.pack (gap label content) @@ V.defAttr)
         <> (T.pack content @@ V.defAttr)
 
-    gap a b
+    gap x y
         | align == AlignRight =
-              take (maxWidth - length a - length b - length sep) $
+              take (maxWidth - length x - length y - length sep) $
               repeat ' '
         | align == AlignLeft =
-              take (maxLabelWidth - length a) $
+              take (maxLabelWidth - length x) $
               repeat ' '
+    gap _ _ = " "
 
     maxWidth = maximum $
         map (\(x,y) -> length sep + length x + length y) defns

@@ -44,18 +44,18 @@ import           UI
 processScanSessDir :: St -> FilePath -> IO ()
 processScanSessDir st dir = withCurrentDirectory dir $ do
     posix <- getPOSIXTime
-    let stamp = show . round $ posix
+    let stamp = show (round posix :: Int)
     logH <- openFile (logFile stamp) WriteMode -- TODO maybe AppendMode?
     outH <- openFile (outFile stamp) WriteMode
-    case st^.stOutFormat of
+    void $ case st^.stOutFormat of
       PDF -> do
           -- 1. convert tiff->PDF
-          createProcessWait_ "convert"
+          void $ createProcessWait_ "convert"
               (proc "convert" (allPages ++ ["temp.pdf"]))
           -- 2. set metadata with pdftk
           renamePath "temp.pdf" "temp2.pdf"
           writeFile "metadata" (metadata posix)
-          createProcessWait_ "pdftk"
+          void $ createProcessWait_ "pdftk"
               (proc "pdftk" ["temp2.pdf", "update_info", "metadata", "temp.pdf"])
               { std_in = NoStream
               , std_out = NoStream
@@ -72,14 +72,15 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
                   }
           -- 4. qpdf (ocrmypdf invokes qpdf but it doesn't use
           -- --linearize, which shrinks the PDF, often substantially)
-          createProcessWait_ "qpdf" (proc "qpdf" ["--linearize", "temp.pdf"])
+          void $ createProcessWait_ "qpdf"
+              (proc "qpdf" ["--linearize", "temp.pdf"])
               { std_in = NoStream
               , std_out = UseHandle outH
               , std_err = UseHandle logH
               }
       -- assume that only one page was scanned.  Not clear how we
       -- can avoid this assumption when producing a PNG
-      PNG -> createProcessWait_ "convert"
+      PNG -> void $ createProcessWait_ "convert"
         (proc "convert" ["page1" <.> "tiff", "png:-"])
           { std_in = NoStream
           , std_out = UseHandle outH
@@ -152,14 +153,16 @@ scanimageArgs st =
            Auto -> ["--swcrop=yes"]
            _ -> [ "-x"
                 , show $ case st^.stPaper of
-                    A4     -> 210
-                    Letter -> 215.9
-                    Photo  -> 150
+                    A4     -> 210   :: Double
+                    Letter -> 215.9 :: Double
+                    Photo  -> 150   :: Double
+                    Auto   -> 1     :: Double
                 , "-y"
                 , show $ case st^.stPaper of
-                    A4     -> 297
-                    Letter -> 279.4
-                    Photo  -> 100
+                    A4     -> 297   :: Double
+                    Letter -> 279.4 :: Double
+                    Photo  -> 100   :: Double
+                    Auto   -> 1     :: Double
                 ]
 -- other device-specific scanimage options the old script supported:
 -- --swdespeck; --color-filter; --depth
