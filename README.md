@@ -8,39 +8,49 @@ command and a flatbed scanner.
 I wrote sscan because I often need to scan multi-page documents on my
 GNU/Linux system, and I have only a flatbed scanner, without an ADF.
 
-sscan was originally a crude Python script.  Now it is a Haskell
-program.
+sscan was originally a crude Python script.  Now it is a somewhat more
+robust Haskell program, relying on the [Brick][] library.
+
+[Brick]: https://github.com/jtdaugherty/brick/
 
 ## Screenshot
 
-[later]
+![screenshot](screenshot.png)
 
 ## Installation
 
 1. Ensure that your scanner has [SANE support][].
-2. Install prerequisite utilities: `apt-get install ocrmypdf pdftk
-   sane-utils haskell-stack`.
-3. Obtain sscan source: `git clone https://git.spwhitton.name/sscan`
-4. Optionally, modify the file `Presets.hs` so that it contains
-   settings presets for the scanning tasks you most often need to
-   perform.
-5. Use [stack][] to build and install sscan: `cd sscan && stack
-   install`.
-   
-Note that stack will download various dependencies automatically.  I
-hope that future versions of sscan will require only dependencies
-available from the Debian mirrors.
+2. Install prerequisite utilities:
+````
+apt-get install ocrmypdf pdftk sane-utils haskell-stack imagemagick
+````
+3. Use [stack][] to build and install sscan:
+````
+stack --resolver=lts-8.2 install sscan`
+````
+
+Note that stack will automatically download and install the various
+Haskell dependencies of sscan -- unfortunately, these are not yet
+likely to all be installable from your distribution's mirrors.
 
 [SANE support]: http://www.sane-project.org/sane-supported-devices.html
 [stack]: https://haskellstack.org/
 
+## Configuration
+
+sscan does not yet have a configuration file.  If it did, this could
+be used to configure the available presets, the default settings on
+startup, and the output directory.  Patches welcome.
+
 ## Usage
 
 Open a terminal, run `sscan` and follow the on-screen instructions.
+If you can't see all the key bindings, you will need to increase the
+size of your terminal.
 
-## Bugs
+## Bugs/patches
 
-Please report bugs by e-mail to `<spwhitton@spwhitton.name>`.
+By e-mail to `<spwhitton@spwhitton.name>`.
 
 ## License
 
@@ -59,4 +69,3 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with sscan.  If not, see
 [<http://www.gnu.org/licenses/>](http://www.gnu.org/licenses/).
-
