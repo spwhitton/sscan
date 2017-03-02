@@ -23,34 +23,20 @@ along with sscan.  If not, see <http://www.gnu.org/licenses/>.
 
 module UI (runTheApp) where
 
-import           Control.Concurrent     (forkFinally)
-import           Control.Monad          (void)
-import           Control.Monad.IO.Class (liftIO)
-import           Data.Monoid
-import qualified Data.Text              as T
 import qualified Graphics.Vty           as V
 import           Lens.Micro             ((&), (.~), (^.))
-import           System.Directory       (getHomeDirectory,
-                                         getTemporaryDirectory,
-                                         removeDirectoryRecursive)
-import           System.FilePath        ((</>))
-import           System.IO.Temp         (createTempDirectory)
 
 import           Brick.AttrMap
 import           Brick.Main
-import           Brick.Markup           (markup, (@?))
 import           Brick.Types
-import           Brick.Util             (fg, on)
 import           Brick.Widgets.Border   as B
 import           Brick.Widgets.Center   as C
 import           Brick.Widgets.Core
-import           Data.Text.Markup       ((@@))
 
 import           Brick.Widgets.DefnList
 import           Presets
 import           Types.Preset
 import           Types.State
-
 
 drawUI :: St -> [Widget ()]
 drawUI st = [ui]

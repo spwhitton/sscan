@@ -26,7 +26,7 @@ along with sscan.  If not, see <http://www.gnu.org/licenses/>.
 module Presets (presets, lookupPreset) where
 
 import           Data.List    (find)
-import           Lens.Micro   ((&), (.~), (^.))
+import           Lens.Micro   ((^.))
 
 import           Types.Preset
 import           Types.State

@@ -23,8 +23,6 @@ along with sscan.  If not, see <http://www.gnu.org/licenses/>.
 
 module Types.Preset where
 
-import qualified Data.Text   as T
-
 import           Types.State
 
 type PresetToggleKey = Char

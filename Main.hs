@@ -28,9 +28,8 @@ import           Control.Monad         (void, when)
 import           Data.Time.Clock.POSIX (getPOSIXTime, posixSecondsToUTCTime)
 import           Data.Time.Format      (defaultTimeLocale, formatTime,
                                         iso8601DateFormat)
-import           Lens.Micro            ((&), (.~), (^.))
-import           System.Directory      (getHomeDirectory,
-                                        removeDirectoryRecursive, renamePath,
+import           Lens.Micro            ((^.))
+import           System.Directory      (getHomeDirectory, renamePath,
                                         withCurrentDirectory)
 import           System.Exit           (ExitCode (..))
 import           System.FilePath       ((<.>), (</>))
