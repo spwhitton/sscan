@@ -171,7 +171,7 @@ scanimageArgs st =
 processCommand :: St -> IO ()
 processCommand st = case st^.stScanSess of
   Nothing -> return ()          -- quit sscan
-  Just (ScanSess command pages maybeDir) -> case maybeDir of
+  Just (ScanSess command _ maybeDir) -> case maybeDir of
     Nothing -> withSystemTempDirectory "sscan" $ \dir ->
       processCommand (setScanSessDir dir st)
     Just dir -> case command of
@@ -185,7 +185,7 @@ processCommand st = case st^.stScanSess of
       Finalise -> finaliseSession st dir >> newSession
   where
     newSession = presentUI $ resetScanSess st
-    finaliseSession st dir = forkIO $ processScanSessDir st dir
+    finaliseSession st' dir = forkIO $ processScanSessDir st' dir
 
 presentUI    :: St -> IO ()
 presentUI st = runTheApp st >>= processCommand

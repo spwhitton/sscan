@@ -55,7 +55,7 @@ defnList align attr defns = vBox $ line <$> defns
 
     maxWidth = maximum $
         map (\(x,y) -> length sep + length x + length y) defns
-    maxLabelWidth = maximum $ map (\(x,y) -> length x) defns
+    maxLabelWidth = maximum $ map (\(x,_) -> length x) defns
     sep = if align == AlignRight then ":   " else ": "
 
     labelAttr = maybe V.defAttr id attr
