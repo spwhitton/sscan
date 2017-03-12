@@ -70,6 +70,9 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
               -- to output to stdout
               void $ withFile "temp.pdf" WriteMode $ \tempFile -> do
                 (_, _, Just herr, p) <- createProcess_ "OCRmyPDF"
+                -- we'd like to use --remove-background here, but then
+                -- qpdf says that ocrmypdf's output is damaged.
+                -- reported upstream
                   (proc "ocrmypdf" ["-c", "-i", "-r", "temp2.pdf", "-"])
                   { std_in = NoStream
                   , std_out = UseHandle tempFile
