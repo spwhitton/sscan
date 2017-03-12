@@ -24,7 +24,7 @@ along with sscan.  If not, see <http://www.gnu.org/licenses/>.
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Control.Concurrent    (forkIO)
-import           Control.Monad         (void, when)
+import           Control.Monad         (unless, void, when)
 import           Data.Time.Clock.POSIX (getPOSIXTime, posixSecondsToUTCTime)
 import           Data.Time.Format      (defaultTimeLocale, formatTime,
                                         iso8601DateFormat)
@@ -33,7 +33,8 @@ import           System.Directory      (getHomeDirectory, removeFile,
                                         renamePath, withCurrentDirectory)
 import           System.Exit           (ExitCode (..))
 import           System.FilePath       ((<.>), (</>))
-import           System.IO             (IOMode (WriteMode), hClose, openFile,
+import           System.IO             (IOMode (WriteMode), hClose,
+                                        hGetContents, hPutStr, openFile,
                                         withFile)
 import           System.IO.Temp        (withSystemTempDirectory)
 import           System.Process
@@ -65,12 +66,21 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
           -- 3. maybe ocrmypdf
           when (st^.stOCR) $ do
               renamePath (dir </> "temp.pdf") (dir </> "temp2.pdf")
-              void $ createProcessWait_ "OCRmyPDF"
-                  (proc "ocrmypdf" ["-c", "-i", "-r", "temp2.pdf", "temp.pdf"])
+              -- OCRmyPDF dies if stdout is not connected, so tell it
+              -- to output to stdout
+              void $ withFile "temp.pdf" WriteMode $ \tempFile -> do
+                (_, _, Just herr, p) <- createProcess_ "OCRmyPDF"
+                  (proc "ocrmypdf" ["-c", "-i", "-r", "temp2.pdf", "-"])
                   { std_in = NoStream
-                  , std_out = NoStream
-                  , std_err = UseHandle logH
+                  , std_out = UseHandle tempFile
+                  , std_err = CreatePipe
                   }
+                -- OCRmyPDF does not yet have a --quiet option, so we
+                -- emulate the chronic(1) utility
+                exitCode <- waitForProcess p
+                unless (exitCode == ExitSuccess) $
+                  hGetContents herr >>= hPutStr logH
+                hClose herr
           -- 4. qpdf (ocrmypdf invokes qpdf but it doesn't use
           -- --linearize, which shrinks the PDF, often substantially)
           void $ createProcessWait_ "qpdf"
