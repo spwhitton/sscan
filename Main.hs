@@ -53,7 +53,7 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
           void $ createProcessWait_ "convert"
               (proc "convert" (allPages ++ ["temp.pdf"]))
           -- 2. set metadata with pdftk
-          renamePath "temp.pdf" "temp2.pdf"
+          renamePath (dir </> "temp.pdf") (dir </> "temp2.pdf")
           writeFile "metadata" (metadata posix)
           void $ createProcessWait_ "pdftk"
               (proc "pdftk"
@@ -64,7 +64,7 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
               }
           -- 3. maybe ocrmypdf
           when (st^.stOCR) $ do
-              renamePath "temp.pdf" "temp2.pdf"
+              renamePath (dir </> "temp.pdf") (dir </> "temp2.pdf")
               void $ createProcessWait_ "OCRmyPDF"
                   (proc "ocrmypdf" ["-c", "-i", "-r", "temp2.pdf", "temp.pdf"])
                   { std_in = NoStream
