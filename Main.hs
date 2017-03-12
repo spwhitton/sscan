@@ -190,7 +190,8 @@ scanimageArgs st =
 
 processCommand :: St -> IO ()
 processCommand st = case st^.stScanSess of
-  Nothing -> return ()          -- quit sscan
+  Nothing -> putStrLn "Waiting for OCR threads to complete..."
+    >> return ()          -- quit sscan
   Just (ScanSess command _ maybeDir) -> case maybeDir of
     Nothing -> withSystemTempDirectory "sscan" $ \dir ->
       processCommand (setScanSessDir dir st)
