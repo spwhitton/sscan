@@ -100,8 +100,10 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
                                   defaultTimeLocale
                                   (iso8601DateFormat Nothing)
                                   (posixSecondsToUTCTime posix)
-                       in unlines [ "InfoKey: Title"
+                       in unlines [ "InfoBegin"
+                                  , "InfoKey: Title"
                                   , "InfoValue: scan of " ++ date
+                                  , "InfoBegin"
                                   , "InfoKey: Author"
                                   , "InfoValue: spw"
                                   ]
