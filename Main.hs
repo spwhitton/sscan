@@ -47,7 +47,6 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
     posix <- getPOSIXTime
     let stamp = show (round posix :: Int)
     logH <- openFile (logFile stamp) WriteMode -- TODO maybe AppendMode?
-    outH <- openFile (outFile stamp) WriteMode
     void $ case st^.stOutFormat of
       PDF -> do
           -- 1. convert tiff->PDF
@@ -87,20 +86,19 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
           -- 4. qpdf (ocrmypdf invokes qpdf but it doesn't use
           -- --linearize, which shrinks the PDF, often substantially)
           void $ createProcessWait_ "qpdf"
-              (proc "qpdf" ["--linearize", "temp.pdf", "-"])
+              (proc "qpdf" ["--linearize", "temp.pdf", outFile stamp])
               { std_in = NoStream
-              , std_out = UseHandle outH
+              , std_out = NoStream
               , std_err = UseHandle logH
               }
       -- assume that only one page was scanned.  Not clear how we
       -- can avoid this assumption when producing a PNG
       PNG -> void $ createProcessWait_ "convert"
-        (proc "convert" ["page1" <.> "tiff", "png:-"])
+        (proc "convert" ["page1" <.> "tiff", outFile stamp])
           { std_in = NoStream
-          , std_out = UseHandle outH
+          , std_out = NoStream
           , std_err = UseHandle logH
           }
-    hClose outH
     hClose logH
     -- clean up the log file if it's empty
     finalLog <- readFile (logFile stamp)
