@@ -56,7 +56,8 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
           renamePath "temp.pdf" "temp2.pdf"
           writeFile "metadata" (metadata posix)
           void $ createProcessWait_ "pdftk"
-              (proc "pdftk" ["temp2.pdf", "update_info", "metadata", "temp.pdf"])
+              (proc "pdftk"
+                ["temp2.pdf", "update_info", "metadata", "output", "temp.pdf"])
               { std_in = NoStream
               , std_out = NoStream
               , std_err = UseHandle logH
