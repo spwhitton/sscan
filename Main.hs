@@ -67,7 +67,7 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
               renamePath (dir </> "temp.pdf") (dir </> "temp2.pdf")
               -- OCRmyPDF dies if stdout is not connected, so tell it
               -- to output to stdout
-              void $ withBinaryFile "temp.pdf" WriteMode $ \tempFile -> do
+              withBinaryFile "temp.pdf" WriteMode $ \tempFile -> do
                 (_, _, Just herr, p) <- createProcess_ "OCRmyPDF"
                 -- we'd like to use --remove-background here, but then
                 -- qpdf says that ocrmypdf's output is damaged.
