@@ -35,7 +35,7 @@ import           System.Exit           (ExitCode (..))
 import           System.FilePath       ((<.>), (</>))
 import           System.IO             (IOMode (WriteMode), hClose,
                                         hGetContents, hPutStr, openFile,
-                                        withFile)
+                                        withBinaryFile, withFile)
 import           System.IO.Temp        (withSystemTempDirectory)
 import           System.Process
 
@@ -67,7 +67,7 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
               renamePath (dir </> "temp.pdf") (dir </> "temp2.pdf")
               -- OCRmyPDF dies if stdout is not connected, so tell it
               -- to output to stdout
-              void $ withFile "temp.pdf" WriteMode $ \tempFile -> do
+              void $ withBinaryFile "temp.pdf" WriteMode $ \tempFile -> do
                 (_, _, Just herr, p) <- createProcess_ "OCRmyPDF"
                 -- we'd like to use --remove-background here, but then
                 -- qpdf says that ocrmypdf's output is damaged.
