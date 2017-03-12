@@ -23,20 +23,20 @@ along with sscan.  If not, see <http://www.gnu.org/licenses/>.
 
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Control.Concurrent    (forkIO)
-import           Control.Monad         (unless, void, when)
-import           Data.Time.Clock.POSIX (getPOSIXTime, posixSecondsToUTCTime)
-import           Data.Time.Format      (defaultTimeLocale, formatTime,
-                                        iso8601DateFormat)
-import           Lens.Micro            ((^.))
-import           System.Directory      (getHomeDirectory, removeFile,
-                                        renamePath, withCurrentDirectory)
-import           System.Exit           (ExitCode (..))
-import           System.FilePath       ((<.>), (</>))
-import           System.IO             (IOMode (WriteMode), hClose,
-                                        hGetContents, hPutStr, openFile,
-                                        withBinaryFile, withFile)
-import           System.IO.Temp        (withSystemTempDirectory)
+import           Control.Concurrent.Async (concurrently_)
+import           Control.Monad            (unless, void, when)
+import           Data.Time.Clock.POSIX    (getPOSIXTime, posixSecondsToUTCTime)
+import           Data.Time.Format         (defaultTimeLocale, formatTime,
+                                           iso8601DateFormat)
+import           Lens.Micro               ((^.))
+import           System.Directory         (getHomeDirectory, removeFile,
+                                           renamePath, withCurrentDirectory)
+import           System.Exit              (ExitCode (..))
+import           System.FilePath          ((<.>), (</>))
+import           System.IO                (IOMode (WriteMode), hClose,
+                                           hGetContents, hPutStr, openFile,
+                                           withBinaryFile, withFile)
+import           System.IO.Temp           (withSystemTempDirectory)
 import           System.Process
 
 import           Types.State
@@ -201,11 +201,12 @@ processCommand st = case st^.stScanSess of
         then presentUI (incrementPages st)
         else newSession
       FinalPage -> scanPage st dir
-                >> finaliseSession (incrementPages st) dir >> newSession
-      Finalise -> finaliseSession st dir >> newSession
+                >> finaliseSession (incrementPages st) dir
+      Finalise -> finaliseSession st dir
   where
     newSession = presentUI $ resetScanSess st
-    finaliseSession st' dir = forkIO $ processScanSessDir st' dir
+    finaliseSession st' dir =
+        concurrently_ (processScanSessDir st' dir) newSession
 
 presentUI    :: St -> IO ()
 presentUI st = runTheApp st >>= processCommand
