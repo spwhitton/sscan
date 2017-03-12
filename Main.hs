@@ -29,8 +29,8 @@ import           Data.Time.Clock.POSIX (getPOSIXTime, posixSecondsToUTCTime)
 import           Data.Time.Format      (defaultTimeLocale, formatTime,
                                         iso8601DateFormat)
 import           Lens.Micro            ((^.))
-import           System.Directory      (getHomeDirectory, renamePath,
-                                        withCurrentDirectory)
+import           System.Directory      (getHomeDirectory, removeFile,
+                                        renamePath, withCurrentDirectory)
 import           System.Exit           (ExitCode (..))
 import           System.FilePath       ((<.>), (</>))
 import           System.IO             (IOMode (WriteMode), hClose, openFile,
@@ -89,6 +89,9 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
           }
     hClose outH
     hClose logH
+    -- clean up the log file if it's empty
+    finalLog <- readFile (logFile stamp)
+    when (null finalLog) $ removeFile (logFile stamp)
   where
       logFile stamp = (st^.stOutdir) </> stamp <.> "log"
       outFile stamp = (st^.stOutdir) </> stamp <.> outExt
