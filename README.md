@@ -26,7 +26,7 @@ apt-get install ocrmypdf pdftk sane-utils haskell-stack imagemagick
 ````
 3. Use [stack][] to build and install sscan:
 ````
-stack --resolver=lts-8.2 install sscan
+stack install sscan
 ````
 
 Note that stack will automatically download and install the various
