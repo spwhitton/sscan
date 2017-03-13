@@ -44,9 +44,11 @@ startup, and the output directory.  Patches welcome.
 
 ## Usage
 
-Open a terminal, run `sscan` and follow the on-screen instructions.
-If you can't see all the key bindings, you will need to increase the
-size of your terminal.
+Ensure that `~/.local/bin` is in your PATH environment variable.
+
+Then open a terminal, run `sscan` and follow the on-screen
+instructions.  If you can't see all the key bindings, you will need to
+increase the size of your terminal.
 
 ## Bugs/patches
 
