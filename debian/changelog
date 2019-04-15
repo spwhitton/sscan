@@ -1,0 +1,5 @@
+sscan (0.1+git20190415.81794a3-1~athena1) stretch; urgency=medium
+
+  * packaging for athena's apt repo
+
+ -- Sean Whitton <spwhitton@spwhitton.name>  Mon, 15 Apr 2019 12:42:58 -0700

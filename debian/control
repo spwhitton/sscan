@@ -1,0 +1,20 @@
+Source: sscan
+Section: text
+Priority: optional
+Maintainer: Sean Whitton <spwhitton@spwhitton.name>
+Build-Depends:
+ debhelper (>= 10),
+ haskell-stack,
+ libtinfo-dev,
+ netbase,
+
+Package: sscan
+Architecture: any
+Depends:
+ imagemagick,
+ ocrmypdf,
+ pdftk,
+ sane-utils,
+ ${misc:Depends},
+ ${shlibs:Depends},
+Description: text UI for scanning with SANE
