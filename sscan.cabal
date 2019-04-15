@@ -10,8 +10,7 @@ copyright:           (C) 2017 Sean Whitton
 category:            Graphics
 build-type:          Simple
 extra-source-files:
-  CHANGELOG
-  debian/changelog
+  NEWS.md
   README.md
 cabal-version:       >=1.10
 
