@@ -117,9 +117,6 @@ processScanSessDir st dir = withCurrentDirectory dir $ do
                        in unlines [ "InfoBegin"
                                   , "InfoKey: Title"
                                   , "InfoValue: scan of " ++ date
-                                  , "InfoBegin"
-                                  , "InfoKey: Author"
-                                  , "InfoValue: spw"
                                   ]
 
 makeInitialState :: IO St
