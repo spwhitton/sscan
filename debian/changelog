@@ -1,3 +1,9 @@
+sscan (0.2-1~athena1) buster; urgency=medium
+
+  * New upstream release.
+
+ -- Sean Whitton <spwhitton@spwhitton.name>  Mon, 27 Jan 2020 20:10:02 -0700
+
 sscan (0.1+git20190415.81794a3-1~athena1) stretch; urgency=medium
 
   * packaging for athena's apt repo
